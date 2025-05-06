@@ -37,7 +37,14 @@ export class CodeGenerationActionHandler implements Disposable {
         this.toDispose.push(
             this.actionListener.handleVSCodeRequest<RequestCodeGenerationAction>(RequestCodeGenerationAction.KIND, async message => {
                 this.count += message.action.increase;
-                console.log(`Hello World from VS Code: ${this.count}`);
+                const model = this.modelState.getModelState();
+                if (model) {
+                    const sourceModel = model.getSourceModel();
+                    console.log('Model available', sourceModel);
+                } else {
+                    console.log('No model available');
+                }
+
                 return CodeGenerationActionResponse.create({
                     count: this.count
                 });
