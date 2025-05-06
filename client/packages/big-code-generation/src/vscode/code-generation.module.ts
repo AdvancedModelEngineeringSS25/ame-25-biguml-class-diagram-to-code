@@ -9,6 +9,7 @@
 
 import { TYPES } from '@borkdominik-biguml/big-vscode-integration/vscode';
 import { ContainerModule } from 'inversify';
+import { CodeGenerationActionHandler } from './code-generation.handler.js';
 import { CodeGenerationProvider, CodeGenerationViewId } from './code-generation.provider.js';
 
 export function codeGenerationModule(viewId: string) {
@@ -19,11 +20,11 @@ export function codeGenerationModule(viewId: string) {
 
         // Handle the request vscode side
         // This will prevent the glsp to handle the request
-        // Remember to comment out the the glsp client handler!
+        // Remember to comment out the the glsp client handler found [here](../glsp-client/code-generation.module.ts)!
         // In CodeGenerationActionHandler implementation GLSP has priority over vscode
 
-        // bind(CodeGenerationActionHandler).toSelf().inSingletonScope();
-        // bind(TYPES.Disposable).toService(CodeGenerationActionHandler);
-        // bind(TYPES.RootInitialization).toService(CodeGenerationActionHandler);
+        bind(CodeGenerationActionHandler).toSelf().inSingletonScope();
+        bind(TYPES.Disposable).toService(CodeGenerationActionHandler);
+        bind(TYPES.RootInitialization).toService(CodeGenerationActionHandler);
     });
 }

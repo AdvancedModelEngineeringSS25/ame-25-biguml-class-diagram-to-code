@@ -6,16 +6,15 @@
  *
  * SPDX-License-Identifier: MIT
  **********************************************************************************/
-import { configureActionHandler, FeatureModule } from '@eclipse-glsp/client';
+import { FeatureModule } from '@eclipse-glsp/client';
 import { ExtensionActionKind } from '@eclipse-glsp/vscode-integration-webview/lib/features/default/extension-action-handler.js';
-import { CodeGenerationActionResponse, RequestCodeGenerationAction } from '../common/code-generation.action.js';
-import { CodeGenerationHandler } from './code-generation.handler.js';
+import { CodeGenerationActionResponse } from '../common/code-generation.action.js';
 
-export const codeGenerationModule = new FeatureModule((bind, unbind, isBound, rebind) => {
-    const context = { bind, unbind, isBound, rebind };
+export const codeGenerationModule = new FeatureModule((bind, _unbind, _isBound, _rebind) => {
+    //const context = { bind, unbind, isBound, rebind };
     // Register the CodeGenerationHandler to handle the RequestCodeGenerationAction
-    bind(CodeGenerationHandler).toSelf().inSingletonScope();
-    configureActionHandler(context, RequestCodeGenerationAction.KIND, CodeGenerationHandler);
+    //bind(CodeGenerationHandler).toSelf().inSingletonScope();
+    //configureActionHandler(context, RequestCodeGenerationAction.KIND, CodeGenerationHandler);
 
     // Allow the CodeGenerationActionResponse to propagate to the server
     bind(ExtensionActionKind).toConstantValue(CodeGenerationActionResponse.KIND);
