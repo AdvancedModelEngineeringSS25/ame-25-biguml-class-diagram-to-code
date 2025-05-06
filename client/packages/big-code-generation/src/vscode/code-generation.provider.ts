@@ -34,7 +34,7 @@ export class CodeGenerationProvider extends BIGReactWebview {
         this.toDispose.push(
             this.actionCache.onDidChange(message => this.webviewConnector.dispatch(message)),
             this.webviewConnector.onReady(() => {
-                // this.requestCount();
+                this.requestCount();
                 this.webviewConnector.dispatch(this.actionCache.getActions());
             }),
             this.webviewConnector.onVisible(() => this.webviewConnector.dispatch(this.actionCache.getActions())),
@@ -50,7 +50,7 @@ export class CodeGenerationProvider extends BIGReactWebview {
                 this.webviewConnector.dispatch(CodeGenerationActionResponse.create());
             }),
             this.modelState.onDidChangeModelState(() => {
-                //this.requestCount();
+                this.requestCount();
             })
         );
     }

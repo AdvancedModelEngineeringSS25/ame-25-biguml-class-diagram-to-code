@@ -48,7 +48,7 @@
   "scripts": {
     "build": "npm run clean && npm run compile",
     "clean": "rimraf lib tsconfig.tsbuildinfo",
-    "compile": "tsx esbuild.ts",
+    "compile": "tsx esbuild.ts && npx cpx \"../../packages/big-code-generation/src/vscode/**/*.hbs\" lib",
     "compile:prod": "npm run clean && npm run compile --minify",
     "lint": "eslint -c ./eslint.config.js",
     "lint:ci": "npm lint -o eslint.xml -f checkstyle",

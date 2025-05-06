@@ -47,7 +47,7 @@
     "build": "npm run clean && npm run compile && npm run bundle && npm run lint",
     "bundle": "tsx esbuild.ts",
     "clean": "rimraf lib dist node_modules/.tmp",
-    "compile": "tsc -b",
+    "compile": "tsc -b && npx cpx \"src/**/*.hbs\" lib",
     "lint": "eslint -c ./eslint.config.js",
     "lint:fix": "npm run lint -- --fix",
     "tsc": "tsc",

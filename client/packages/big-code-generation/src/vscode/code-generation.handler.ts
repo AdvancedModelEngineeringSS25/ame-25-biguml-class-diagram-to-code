@@ -19,18 +19,10 @@ import { DisposableCollection } from '@eclipse-glsp/protocol';
 import { inject, injectable, postConstruct } from 'inversify';
 import { CodeGenerationActionResponse, RequestCodeGenerationAction } from '../common/code-generation.action.js';
 
-import {
-    CSharpTargetLanguage,
-    FetchingJSONSchemaStore,
-    getTargetLanguage,
-    InputData,
-    JavaTargetLanguage,
-    JSONSchemaInput,
-    PythonTargetLanguage,
-    quicktype,
-    TypeScriptTargetLanguage,
-    type TargetLanguage
-} from 'quicktype-core';
+import { readFileSync } from 'fs';
+import Handlebars from 'handlebars';
+import _, { type Dictionary } from 'lodash';
+import { join } from 'path';
 
 // Handle the action within the server and not the glsp client / server
 @injectable()
@@ -50,33 +42,18 @@ export class CodeGenerationActionHandler implements Disposable {
         this.toDispose.push(
             this.actionListener.handleVSCodeRequest<RequestCodeGenerationAction>(RequestCodeGenerationAction.KIND, async message => {
                 this.count += message.action.increase;
+
                 const model = this.modelState.getModelState();
                 if (model) {
                     const sourceModel = model.getSourceModel();
-                    console.log('Model available', sourceModel);
+                    console.log('source-model', sourceModel);
 
-                    const personSchema = {
-                        $schema: 'http://json-schema.org/draft-07/schema#',
-                        type: 'object',
-                        properties: {
-                            author: {
-                                type: 'object',
-                                properties: {
-                                    name: { type: 'string' },
-                                    preferredName: { type: 'string' },
-                                    age: { type: 'number' },
-                                    gender: { enum: ['male', 'female', 'other'] }
-                                },
-                                required: ['name', 'preferredName', 'age', 'gender']
-                            },
-                            title: { type: 'string' },
-                            publisher: { type: 'string' }
-                        },
-                        required: ['author', 'title', 'publisher']
-                    };
+                    const t = this.readTemplate('java');
 
-                    const { lines: javaPerson } = await this.quickTypeJSONSchema('java', 'Person', JSON.stringify(personSchema));
-                    console.log(javaPerson);
+                    console.log('template', t);
+
+                    // const javaPerson = this.modelToJava(sourceModel);
+                    // console.log(javaPerson);
                 } else {
                     console.log('No model available');
                 }
@@ -92,40 +69,44 @@ export class CodeGenerationActionHandler implements Disposable {
         this.toDispose.dispose();
     }
 
-    private getTargetLanguageInstance(lang: string): TargetLanguage {
-        switch (lang.toLowerCase()) {
-            case 'java':
-                return new JavaTargetLanguage();
-            case 'typescript':
-                return new TypeScriptTargetLanguage();
-            case 'csharp':
-                return new CSharpTargetLanguage();
-            case 'python':
-                return new PythonTargetLanguage();
-            default:
-                throw new Error(`Unsupported language: ${lang}`);
-        }
+    static get templateFiles() {
+        return _.reduce(
+            CodeGenerationActionHandler.languages,
+            (acc: Dictionary<string>, lang: string) => {
+                acc[lang] = join(__dirname, 'templates', `${lang}.hbs`);
+                return acc;
+            },
+            {}
+        );
     }
 
-    private async quickTypeJSONSchema(targetLanguage: string, typeName: string, jsonSchemaString: string) {
-        const schemaInput = new JSONSchemaInput(new FetchingJSONSchemaStore());
+    private readTemplate(lang: string): HandlebarsTemplateDelegate<any> {
+        const tmpl = CodeGenerationActionHandler.templateFiles[lang];
+        console.log('Read template', tmpl);
+        const source = readFileSync(tmpl);
+        return Handlebars.compile(source.toString(), { noEscape: true });
+    }
 
-        await schemaInput.addSource({ name: typeName, schema: jsonSchemaString });
+    private static get languages(): string[] {
+        return _.keys(CodeGenerationActionHandler.extensions);
+    }
 
-        const inputData = new InputData();
-        inputData.addInput(schemaInput);
+    private static get extensions(): Dictionary<string> {
+        return {
+            coffeescript: 'coffee',
+            csharp: 'cs',
+            ecmascript5: 'js',
+            ecmascript6: 'js',
+            java: 'java',
+            php: 'php',
+            python: 'py',
+            ruby: 'rb',
+            typescript: 'ts',
+            cpp: 'h'
+        };
+    }
 
-        const lang = getTargetLanguage(this.getTargetLanguageInstance(targetLanguage));
-        if (lang === undefined) {
-            throw new Error(`Unsupported language: ${targetLanguage}`);
-        }
-
-        return await quicktype({
-            inputData,
-            lang: lang,
-            rendererOptions: {
-                'just-types': true
-            }
-        });
+    static getExtension(lang: string): string {
+        return _.get(CodeGenerationActionHandler.extensions, lang, 'js');
     }
 }
