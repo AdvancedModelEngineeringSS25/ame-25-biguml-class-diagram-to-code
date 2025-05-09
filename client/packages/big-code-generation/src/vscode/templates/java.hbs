@@ -1,12 +1,7 @@
-{{#if isAbstract}}abstract {{/if}}class {{getFullName}}{{#if getExtends}} extends {{#with getExtends}}{{getFullName}}{{/with}}{{/if}} {
-{{#each getFields}}
-  {{this.getModifier}} {{this.getReturnType}} {{this.getName}};
-{{/each}}
-{{#each getMethods}}
-  {{this.getModifier}} {{this.getReturnType}} {{this.getName}}{{#if this.getParameters}}({{#each this.getParameters}}{{#if @first}}{{else}},{{/if}}{{this.getReturnType}} {{#if this.getName}}{{this.getName}}{{else}}param{{@index}}{{/if}}{{/each}}){{else}}(){{/if}} {
-    {{#if this.needsReturnStatement}}
-      return null;
-    {{/if}}
-  }
-{{/each}}
+{{#each packagedElement}}
+{{#if (isClass this)}}
+public {{#if isAbstract}}abstract {{/if}}class {{name}} {
 }
+
+{{/if}}
+{{/each}}

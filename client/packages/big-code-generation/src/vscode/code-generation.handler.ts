@@ -48,9 +48,9 @@ export class CodeGenerationActionHandler implements Disposable {
                     const sourceModel = model.getSourceModel();
                     console.log('source-model', sourceModel);
 
-                    const t = this.readTemplate('java');
-
-                    console.log('template', t);
+                    const template = this.readTemplate('java');
+                    const code = template(sourceModel);
+                    console.log('template', code);
 
                     // const javaPerson = this.modelToJava(sourceModel);
                     // console.log(javaPerson);
@@ -82,9 +82,8 @@ export class CodeGenerationActionHandler implements Disposable {
 
     private readTemplate(lang: string): HandlebarsTemplateDelegate<any> {
         const tmpl = CodeGenerationActionHandler.templateFiles[lang];
-        console.log('Read template', tmpl);
-        const source = readFileSync(tmpl);
-        return Handlebars.compile(source.toString(), { noEscape: true });
+        const source = readFileSync(tmpl, { encoding: 'utf8' });
+        return Handlebars.compile(source);
     }
 
     private static get languages(): string[] {
