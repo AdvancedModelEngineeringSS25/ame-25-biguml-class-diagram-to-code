@@ -19,6 +19,7 @@ import { DisposableCollection } from '@eclipse-glsp/protocol';
 import { inject, injectable, postConstruct } from 'inversify';
 import { CodeGenerationActionResponse, RequestCodeGenerationAction } from '../common/code-generation.action.js';
 
+import { UMLClass, UMLEnumeration, UMLInterface, UMLPrimitiveType, type UMLSourceModel } from '@borkdominik-biguml/uml-protocol';
 import { readFileSync } from 'fs';
 import Handlebars from 'handlebars';
 import _, { type Dictionary } from 'lodash';
@@ -46,14 +47,14 @@ export class CodeGenerationActionHandler implements Disposable {
                 const model = this.modelState.getModelState();
                 if (model) {
                     const sourceModel = model.getSourceModel();
-                    console.log('source-model', sourceModel);
+
+                    const typeNames = this.getTypeNames(sourceModel);
+                    const addedSourceModel = this.addTypeNames(sourceModel, typeNames);
+                    console.log('source-model', addedSourceModel);
 
                     const template = this.readTemplate('java');
-                    const code = template(sourceModel);
-                    console.log('template', code);
-
-                    // const javaPerson = this.modelToJava(sourceModel);
-                    // console.log(javaPerson);
+                    const code = template(addedSourceModel);
+                    console.log('source-code', code);
                 } else {
                     console.log('No model available');
                 }
@@ -63,6 +64,30 @@ export class CodeGenerationActionHandler implements Disposable {
                 });
             })
         );
+    }
+
+    private getTypeNames(sourceModel: Readonly<UMLSourceModel>) {
+        const typeNames = new Map<string, string>();
+
+        sourceModel.packagedElement?.forEach(element => {
+            if (UMLClass.is(element)) {
+                const t = element as UMLClass;
+                typeNames.set(t.id, t.name);
+            }
+            if (UMLEnumeration.is(element)) {
+                const t = element as UMLEnumeration;
+                typeNames.set(t.id, t.name);
+            }
+            if (UMLInterface.is(element)) {
+                const t = element as UMLInterface;
+                typeNames.set(t.id, t.name);
+            }
+            if (UMLPrimitiveType.is(element)) {
+                const t = element as UMLPrimitiveType;
+                typeNames.set(t.id, t.name);
+            }
+        });
+        return typeNames;
     }
 
     dispose(): void {
@@ -92,20 +117,33 @@ export class CodeGenerationActionHandler implements Disposable {
 
     private static get extensions(): Dictionary<string> {
         return {
-            coffeescript: 'coffee',
-            csharp: 'cs',
-            ecmascript5: 'js',
-            ecmascript6: 'js',
-            java: 'java',
-            php: 'php',
-            python: 'py',
-            ruby: 'rb',
-            typescript: 'ts',
-            cpp: 'h'
+            java: 'java'
         };
     }
 
     static getExtension(lang: string): string {
         return _.get(CodeGenerationActionHandler.extensions, lang, 'js');
+    }
+
+    private addTypeNames(obj: any, typeMap: Map<string, string>): any {
+        if (typeof obj !== 'object' || obj === null) return obj;
+
+        if (Array.isArray(obj)) {
+            return obj.map(item => this.addTypeNames(item, typeMap));
+        }
+
+        const newObj = { ...obj };
+
+        if (newObj.$ref && typeMap.get(newObj.$ref)) {
+            newObj.name = typeMap.get(newObj.$ref);
+        }
+
+        for (const key in newObj) {
+            if (typeof newObj[key] === 'object') {
+                newObj[key] = this.addTypeNames(newObj[key], typeMap);
+            }
+        }
+
+        return newObj;
     }
 }
