@@ -8,7 +8,7 @@
  **********************************************************************************/
 import { BIGReactWebview } from '@borkdominik-biguml/big-vscode-integration/vscode';
 import { inject, injectable, postConstruct } from 'inversify';
-import { CodeGenerationActionResponse, RequestCodeGenerationAction } from '../common/code-generation.action.js';
+import { CodeGenerationActionResponse, RequestCodeGenerationAction, SelectFolderActionResponse } from '../common/code-generation.action.js';
 
 export const CodeGenerationViewId = Symbol('CodeGenerationViewId');
 
@@ -19,7 +19,7 @@ export class CodeGenerationProvider extends BIGReactWebview {
 
     protected override cssPath = ['code-generation', 'bundle.css'];
     protected override jsPath = ['code-generation', 'bundle.js'];
-    protected readonly actionCache = this.actionListener.createCache([CodeGenerationActionResponse.KIND]);
+    protected readonly actionCache = this.actionListener.createCache([CodeGenerationActionResponse.KIND, SelectFolderActionResponse.KIND]);
 
     @postConstruct()
     protected override init(): void {

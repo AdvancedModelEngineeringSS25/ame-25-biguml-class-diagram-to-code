@@ -36,6 +36,7 @@ export interface CodeGenerationActionResponse extends ResponseAction {
     kind: typeof CodeGenerationActionResponse.KIND;
     count: number;
 }
+
 export namespace CodeGenerationActionResponse {
     export const KIND = 'codeGenerationResponse';
 
@@ -50,6 +51,50 @@ export namespace CodeGenerationActionResponse {
             kind: KIND,
             responseId: '',
             count: 0,
+            ...options
+        };
+    }
+}
+
+export interface RequestSelectFolderAction extends RequestAction<SelectFolderActionResponse> {
+    kind: typeof RequestSelectFolderAction.KIND;
+}
+
+export namespace RequestSelectFolderAction {
+    export const KIND = 'requestSelectFolder';
+
+    export function is(object: unknown): object is RequestSelectFolderAction {
+        return RequestAction.hasKind(object, KIND);
+    }
+
+    export function create(options: Omit<RequestSelectFolderAction, 'kind' | 'requestId'>): RequestSelectFolderAction {
+        return {
+            kind: KIND,
+            requestId: '',
+            ...options
+        };
+    }
+}
+
+export interface SelectFolderActionResponse extends ResponseAction {
+    kind: typeof SelectFolderActionResponse.KIND;
+    folderPath: string | null;
+}
+
+export namespace SelectFolderActionResponse {
+    export const KIND = 'selectFolderResponse';
+
+    export function is(object: unknown): object is SelectFolderActionResponse {
+        return Action.hasKind(object, KIND);
+    }
+
+    export function create(
+        options?: Omit<SelectFolderActionResponse, 'kind' | 'responseId'> & { responseId?: string }
+    ): SelectFolderActionResponse {
+        return {
+            kind: KIND,
+            responseId: '',
+            folderPath: null,
             ...options
         };
     }

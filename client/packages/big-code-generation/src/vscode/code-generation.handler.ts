@@ -17,13 +17,19 @@ import {
 } from '@borkdominik-biguml/big-vscode-integration/vscode';
 import { DisposableCollection } from '@eclipse-glsp/protocol';
 import { inject, injectable, postConstruct } from 'inversify';
-import { CodeGenerationActionResponse, RequestCodeGenerationAction } from '../common/code-generation.action.js';
+import {
+    CodeGenerationActionResponse,
+    RequestCodeGenerationAction,
+    RequestSelectFolderAction,
+    SelectFolderActionResponse
+} from '../common/code-generation.action.js';
 
 import { UMLClass, UMLEnumeration, UMLInterface, UMLPrimitiveType, type UMLSourceModel } from '@borkdominik-biguml/uml-protocol';
 import { readFileSync } from 'fs';
 import Handlebars from 'handlebars';
 import _, { type Dictionary } from 'lodash';
 import { join } from 'path';
+import * as vscode from 'vscode';
 
 // Handle the action within the server and not the glsp client / server
 @injectable()
@@ -61,6 +67,22 @@ export class CodeGenerationActionHandler implements Disposable {
 
                 return CodeGenerationActionResponse.create({
                     count: this.count
+                });
+            })
+        );
+
+        this.toDispose.push(
+            this.actionListener.handleVSCodeRequest<RequestSelectFolderAction>(RequestSelectFolderAction.KIND, async () => {
+                const folders = await vscode.window.showOpenDialog({
+                    canSelectFolders: true,
+                    canSelectMany: false,
+                    openLabel: 'Select Folder'
+                });
+
+                const folderPath = folders?.[0]?.fsPath ?? null;
+
+                return SelectFolderActionResponse.create({
+                    folderPath: folderPath
                 });
             })
         );
