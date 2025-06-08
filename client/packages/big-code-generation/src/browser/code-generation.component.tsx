@@ -8,24 +8,19 @@
  **********************************************************************************/
 import { VSCodeContext } from '@borkdominik-biguml/big-components';
 import { useCallback, useContext, useEffect, useState, type ReactElement } from 'react';
-import { CodeGenerationActionResponse, RequestCodeGenerationAction, RequestSelectFolderAction, SelectFolderActionResponse } from '../common/index.js';
+import { RequestCodeGenerationAction, RequestSelectFolderAction, SelectFolderActionResponse } from '../common/index.js';
 
 
 export function CodeGeneration(): ReactElement {
     const { listenAction, dispatchAction } = useContext(VSCodeContext);
-    const [count, setCount] = useState(0);
     const [folder, setFolder] = useState<string | null>(null);
     const [generateMultiple, setGenerateMultiple] = useState(false);
     const [isGenerationDisabled, setIsGenerationDisabled] = useState(true);
 
     useEffect(() => {
         listenAction(action => {
-            if (CodeGenerationActionResponse.is(action)) {
-                setCount(action.count);
-            }
             if (SelectFolderActionResponse.is(action)) {
                 setFolder(action.folderPath);
-                console.log(action.folderPath);
                 setIsGenerationDisabled(action.folderPath === null);
             }
         });
@@ -68,7 +63,6 @@ export function CodeGeneration(): ReactElement {
                 </label>
             </div>
             <div>
-                <span>Code generated {count} times!</span>
                 <button onClick={generateCode} style={{ marginLeft: '8px' }} disabled={isGenerationDisabled}>Generate</button>
             </div>
         </div>

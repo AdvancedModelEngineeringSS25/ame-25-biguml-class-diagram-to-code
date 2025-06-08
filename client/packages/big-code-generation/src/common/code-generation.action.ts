@@ -35,7 +35,7 @@ export namespace RequestCodeGenerationAction {
 
 export interface CodeGenerationActionResponse extends ResponseAction {
     kind: typeof CodeGenerationActionResponse.KIND;
-    count: number;
+    success: boolean;
 }
 
 export namespace CodeGenerationActionResponse {
@@ -51,7 +51,7 @@ export namespace CodeGenerationActionResponse {
         return {
             kind: KIND,
             responseId: '',
-            count: 0,
+            success: false,
             ...options
         };
     }

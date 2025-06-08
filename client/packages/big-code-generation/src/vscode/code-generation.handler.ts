@@ -42,29 +42,30 @@ export class CodeGenerationActionHandler implements Disposable {
     protected readonly modelState: ExperimentalGLSPServerModelState;
 
     private readonly toDispose = new DisposableCollection();
-    private count = 0;
 
     @postConstruct()
     protected init(): void {
         this.toDispose.push(
             this.actionListener.handleVSCodeRequest<RequestCodeGenerationAction>(RequestCodeGenerationAction.KIND, async message => {
                 const model = this.modelState.getModelState();
-                if (model) {
-                    const sourceModel = model.getSourceModel();
-
-                    const typeNames = this.getTypeNames(sourceModel);
-                    const addedSourceModel = this.addTypeNames(sourceModel, typeNames);
-                    console.log('source-model', addedSourceModel);
-
-                    const template = this.readTemplate('java');
-                    const code = template(addedSourceModel);
-                    console.log('source-code', code);
-                } else {
-                    console.log('No model available');
+                if (!model) {
+                    return CodeGenerationActionResponse.create({
+                        success: false
+                    });
                 }
 
+                const sourceModel = model.getSourceModel();
+
+                const typeNames = this.getTypeNames(sourceModel);
+                const addedSourceModel = this.addTypeNames(sourceModel, typeNames);
+
+                const template = this.readTemplate('java');
+                const code = template(addedSourceModel);
+
+                vscode.workspace.fs.writeFile(vscode.Uri.file(message.action.folderPath + '/test.java'), new TextEncoder().encode(code));
+
                 return CodeGenerationActionResponse.create({
-                    count: this.count
+                    success: true
                 });
             })
         );
