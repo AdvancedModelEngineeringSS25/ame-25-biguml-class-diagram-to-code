@@ -59,10 +59,29 @@ export class CodeGenerationActionHandler implements Disposable {
                 const typeNames = this.getTypeNames(sourceModel);
                 const addedSourceModel = this.addTypeNames(sourceModel, typeNames);
 
-                const template = this.readTemplate('java');
-                const code = template(addedSourceModel);
+                if (message.action.multiple) {
+                    for (const [typeId, typeName] of typeNames) {
+                        const sourceModelForType: UMLSourceModel = this.getTypeFromModel(typeId, addedSourceModel);
 
-                vscode.workspace.fs.writeFile(vscode.Uri.file(message.action.folderPath + '/test.java'), new TextEncoder().encode(code));
+                        if (UMLPrimitiveType.is(sourceModelForType.packagedElement![0])) continue;
+
+                        const template = this.readTemplate('java');
+                        const code = template(sourceModelForType);
+
+                        vscode.workspace.fs.writeFile(
+                            vscode.Uri.file(message.action.folderPath + '/' + typeName + '.java'),
+                            new TextEncoder().encode(code)
+                        );
+                    }
+                } else {
+                    const template = this.readTemplate('java');
+                    const code = template(addedSourceModel);
+
+                    vscode.workspace.fs.writeFile(
+                        vscode.Uri.file(message.action.folderPath + '/test.java'),
+                        new TextEncoder().encode(code)
+                    );
+                }
 
                 return CodeGenerationActionResponse.create({
                     success: true
@@ -85,6 +104,16 @@ export class CodeGenerationActionHandler implements Disposable {
                 });
             })
         );
+    }
+
+    private getTypeFromModel(typeId: string, sourceModel: any): any {
+        const t = sourceModel as UMLSourceModel;
+
+        const n: UMLSourceModel = _.cloneDeep(sourceModel);
+
+        n.packagedElement = t.packagedElement?.filter(element => element.id === typeId);
+
+        return n;
     }
 
     private getTypeNames(sourceModel: Readonly<UMLSourceModel>) {

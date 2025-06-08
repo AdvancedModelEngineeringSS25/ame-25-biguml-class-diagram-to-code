@@ -18,8 +18,8 @@ public interface {{name}} {
 
     {{#if (isPackagePrivateModifier visibility)}}{{else}}{{visibility}} {{/if}}{{returnType ownedParameter}} {{name}}({{#each (parameters ownedParameter)}}{{type.name}} {{name}}{{#if @last}}{{else}},{{/if}}{{/each}});
     {{/each}}
-
 }
+
 {{/if}}
 {{#if (isEnumeration this)}}
 public enum {{name}} {
