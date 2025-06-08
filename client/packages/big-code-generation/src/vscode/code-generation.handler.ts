@@ -48,8 +48,6 @@ export class CodeGenerationActionHandler implements Disposable {
     protected init(): void {
         this.toDispose.push(
             this.actionListener.handleVSCodeRequest<RequestCodeGenerationAction>(RequestCodeGenerationAction.KIND, async message => {
-                this.count += message.action.increase;
-
                 const model = this.modelState.getModelState();
                 if (model) {
                     const sourceModel = model.getSourceModel();

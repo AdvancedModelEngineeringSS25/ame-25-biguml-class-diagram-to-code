@@ -13,7 +13,8 @@ import { Action, RequestAction, type ResponseAction } from '@eclipse-glsp/protoc
 
 export interface RequestCodeGenerationAction extends RequestAction<CodeGenerationActionResponse> {
     kind: typeof RequestCodeGenerationAction.KIND;
-    increase: number;
+    multiple: boolean;
+    folderPath: string;
 }
 
 export namespace RequestCodeGenerationAction {

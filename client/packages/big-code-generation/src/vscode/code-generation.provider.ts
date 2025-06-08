@@ -34,31 +34,24 @@ export class CodeGenerationProvider extends BIGReactWebview {
         this.toDispose.push(
             this.actionCache.onDidChange(message => this.webviewConnector.dispatch(message)),
             this.webviewConnector.onReady(() => {
-                this.requestCount();
+                this.generateCode();
                 this.webviewConnector.dispatch(this.actionCache.getActions());
             }),
             this.webviewConnector.onVisible(() => this.webviewConnector.dispatch(this.actionCache.getActions())),
-            this.connectionManager.onDidActiveClientChange(() => {
-                this.requestCount();
-            }),
-            this.connectionManager.onNoActiveClient(() => {
-                // Send a message to the webview when there is no active client
-                this.webviewConnector.dispatch(CodeGenerationActionResponse.create());
-            }),
-            this.connectionManager.onNoConnection(() => {
-                // Send a message to the webview when there is no glsp client
-                this.webviewConnector.dispatch(CodeGenerationActionResponse.create());
-            }),
+            this.connectionManager.onDidActiveClientChange(() => {}),
+            this.connectionManager.onNoActiveClient(() => {}),
+            this.connectionManager.onNoConnection(() => {}),
             this.modelState.onDidChangeModelState(() => {
-                this.requestCount();
+                this.generateCode();
             })
         );
     }
 
-    protected requestCount(): void {
+    protected generateCode(): void {
         this.actionDispatcher.dispatch(
             RequestCodeGenerationAction.create({
-                increase: 0
+                folderPath: '',
+                multiple: false
             })
         );
     }
