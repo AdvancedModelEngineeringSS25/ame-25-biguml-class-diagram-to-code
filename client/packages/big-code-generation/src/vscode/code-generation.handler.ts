@@ -59,7 +59,7 @@ export class CodeGenerationActionHandler implements Disposable {
                 const typeNames = this.getTypeNames(sourceModel);
                 const addedSourceModel = this.addTypeNames(sourceModel, typeNames);
 
-                if (message.action.multiple) {
+                if (message.action.languageOptions?.multiple) {
                     for (const [typeId, typeName] of typeNames) {
                         const sourceModelForType: UMLSourceModel = this.getTypeFromModel(typeId, addedSourceModel);
 
@@ -69,7 +69,7 @@ export class CodeGenerationActionHandler implements Disposable {
                         const code = template(sourceModelForType);
 
                         vscode.workspace.fs.writeFile(
-                            vscode.Uri.file(message.action.folderPath + '/' + typeName + '.java'),
+                            vscode.Uri.file(message.action.languageOptions.folder + '/' + typeName + '.java'),
                             new TextEncoder().encode(code)
                         );
                     }
@@ -78,7 +78,7 @@ export class CodeGenerationActionHandler implements Disposable {
                     const code = template(addedSourceModel);
 
                     vscode.workspace.fs.writeFile(
-                        vscode.Uri.file(message.action.folderPath + '/test.java'),
+                        vscode.Uri.file(message.action.languageOptions?.folder + '/test.java'),
                         new TextEncoder().encode(code)
                     );
                 }

@@ -9,12 +9,14 @@
 
 import { Action, RequestAction, type ResponseAction } from '@eclipse-glsp/protocol';
 
+import { type JavaCodeGenerationOptions } from '../types/config.js';
+
 // ========= This action will be handled by the GLSP Client =========
 
 export interface RequestCodeGenerationAction extends RequestAction<CodeGenerationActionResponse> {
     kind: typeof RequestCodeGenerationAction.KIND;
-    multiple: boolean;
-    folderPath: string;
+    language: string | null;
+    languageOptions: JavaCodeGenerationOptions | null;
 }
 
 export namespace RequestCodeGenerationAction {

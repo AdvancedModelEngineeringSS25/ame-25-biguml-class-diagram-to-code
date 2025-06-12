@@ -50,8 +50,8 @@ export class CodeGenerationProvider extends BIGReactWebview {
     protected generateCode(): void {
         this.actionDispatcher.dispatch(
             RequestCodeGenerationAction.create({
-                folderPath: '',
-                multiple: false
+                language: null,
+                languageOptions: null
             })
         );
     }
