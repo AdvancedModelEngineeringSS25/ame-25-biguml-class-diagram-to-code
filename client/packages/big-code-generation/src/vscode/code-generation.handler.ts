@@ -30,6 +30,7 @@ import Handlebars from 'handlebars';
 import _, { type Dictionary } from 'lodash';
 import { join } from 'path';
 import * as vscode from 'vscode';
+import { type JavaCodeGenerationOptions } from '../types/config.js';
 
 // Handle the action within the server and not the glsp client / server
 @injectable()
@@ -49,9 +50,13 @@ export class CodeGenerationActionHandler implements Disposable {
             this.actionListener.handleVSCodeRequest<RequestCodeGenerationAction>(RequestCodeGenerationAction.KIND, async message => {
                 const model = this.modelState.getModelState();
                 if (!model) {
-                    return CodeGenerationActionResponse.create({
-                        success: false
-                    });
+                    return CodeGenerationActionResponse.create({ success: false });
+                }
+                if (!message.action.language) {
+                    return CodeGenerationActionResponse.create({ success: false });
+                }
+                if (!message.action.languageOptions) {
+                    return CodeGenerationActionResponse.create({ success: false });
                 }
 
                 const sourceModel = model.getSourceModel();
@@ -59,33 +64,13 @@ export class CodeGenerationActionHandler implements Disposable {
                 const typeNames = this.getTypeNames(sourceModel);
                 const addedSourceModel = this.addTypeNames(sourceModel, typeNames);
 
-                if (message.action.languageOptions?.multiple) {
-                    for (const [typeId, typeName] of typeNames) {
-                        const sourceModelForType: UMLSourceModel = this.getTypeFromModel(typeId, addedSourceModel);
-
-                        if (UMLPrimitiveType.is(sourceModelForType.packagedElement![0])) continue;
-
-                        const template = this.readTemplate('java');
-                        const code = template(sourceModelForType);
-
-                        vscode.workspace.fs.writeFile(
-                            vscode.Uri.file(message.action.languageOptions.folder + '/' + typeName + '.java'),
-                            new TextEncoder().encode(code)
-                        );
-                    }
+                if (message.action.language == 'java') {
+                    this.generateJavaCode(addedSourceModel, typeNames, message.action.languageOptions);
                 } else {
-                    const template = this.readTemplate('java');
-                    const code = template(addedSourceModel);
-
-                    vscode.workspace.fs.writeFile(
-                        vscode.Uri.file(message.action.languageOptions?.folder + '/test.java'),
-                        new TextEncoder().encode(code)
-                    );
+                    return CodeGenerationActionResponse.create({ success: false });
                 }
 
-                return CodeGenerationActionResponse.create({
-                    success: true
-                });
+                return CodeGenerationActionResponse.create({ success: true });
             })
         );
 
@@ -104,6 +89,29 @@ export class CodeGenerationActionHandler implements Disposable {
                 });
             })
         );
+    }
+
+    private generateJavaCode(sourceModel: any, typeNames: Map<string, string>, languageOptions: JavaCodeGenerationOptions): void {
+        if (languageOptions?.multiple) {
+            for (const [typeId, typeName] of typeNames) {
+                const sourceModelForType: UMLSourceModel = this.getTypeFromModel(typeId, sourceModel);
+
+                if (UMLPrimitiveType.is(sourceModelForType.packagedElement![0])) continue;
+
+                const template = this.readTemplate('java');
+                const code = template(sourceModelForType);
+
+                vscode.workspace.fs.writeFile(
+                    vscode.Uri.file(languageOptions.folder + '/' + typeName + '.java'),
+                    new TextEncoder().encode(code)
+                );
+            }
+        } else {
+            const template = this.readTemplate('java');
+            const code = template(sourceModel);
+
+            vscode.workspace.fs.writeFile(vscode.Uri.file(languageOptions?.folder + '/test.java'), new TextEncoder().encode(code));
+        }
     }
 
     private getTypeFromModel(typeId: string, sourceModel: any): any {
